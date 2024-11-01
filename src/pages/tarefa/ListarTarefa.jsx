@@ -11,12 +11,18 @@ import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import Modal from '@mui/material/Modal';
 
 import CriarTarefa from './CriarTarefa';
 import EditarTarefa from './EditarTarefa';
+import { converterData } from '../../utils/conversor';
 
 //A função abaixo é usada para criar o array contendo os dados iniciais da listagem de tarefas.
 function createData(
@@ -33,21 +39,21 @@ function createData(
 
 //Definição do array contendo os dados iniciais da listagem de tarefas
 const initialRows = [
-  createData(1, 'Tarefa 1', 'Descrição da Tarefa 1', '2022-01-01', '2022-01-02', 'Concluída', 'Recurso 1'),
-  createData(2, 'Tarefa 2', 'Descrição da Tarefa 2', '2022-01-03', '2022-01-04', 'Em Andamento', 'Recurso 2'),
-  createData(3, 'Tarefa 3', 'Descrição da Tarefa 3', '2022-01-04', '2022-01-05', 'Em Andamento', 'Recurso 3'),
-  createData(4, 'Tarefa 4', 'Descrição da Tarefa 4', '2022-01-05', '2022-01-06', 'Em Andamento', 'Recurso 4'),
-  createData(5, 'Tarefa 5', 'Descrição da Tarefa 5', '2022-01-06', '2022-01-07', 'Em Andamento', 'Recurso 5'),
-  createData(6, 'Tarefa 6', 'Descrição da Tarefa 6', '2022-01-07', '2022-01-08', 'Aguardando', 'Recurso 6'),
+  createData(1, 'Tarefa 1', 'Descrição da Tarefa 1', '2022-01-01 08:00:01', '2022-01-02 16:55:31', 'Concluída', 'Recurso 1'),
+  createData(2, 'Tarefa 2', 'Descrição da Tarefa 2', '2022-01-03 10:27:13', '2022-01-04 10:00:00', 'Em Andamento', 'Recurso 2'),
+  createData(3, 'Tarefa 3', 'Descrição da Tarefa 3', '2022-01-04 09:34:19', '2022-01-05 15:01:10', 'Em Andamento', 'Recurso 3'),
+  createData(4, 'Tarefa 4', 'Descrição da Tarefa 4', '2022-01-05 11:33:17', '2022-01-06 17:59:57', 'Em Andamento', 'Recurso 4'),
 ];
 
 //Componente ListarTarefa
 const ListarTarefa = () => {
   const [open, setOpen] = useState(false);
+  const [openDeletar, setOpenDeletar] = useState(false);
   const [openEditar, setOpenEditar] = useState(false);
   const [tarefas, setTarefas] = useState([]);
   const [tarefa, setTarefa] = useState();
-  const [idTarefaSelecionada, setIdTarefaSelecionada] = useState([]);
+  const [idTarefaSelecionada, setIdTarefaSelecionada] = useState(0);
+  
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleOpenEditar = () => setOpenEditar(true);
@@ -73,20 +79,29 @@ const ListarTarefa = () => {
     setOpenEditar(true)
   };
 
+  const handleCloseDeletar = () => setOpenDeletar(!openDeletar);
+
   const handleDeletar = (id) => {
-    setTarefas(current =>
-      current.filter(tarefa => {
-        return tarefa.idTarefa !== id;
-      }),
-    );
+    setIdTarefaSelecionada(id);
+    setOpenDeletar(!openDeletar);
   };
 
-    return(
+  const handleConfirmarDeletar = () => {
+    setTarefas(current =>
+      current.filter(tarefa => {
+        return tarefa.idTarefa !== idTarefaSelecionada;
+      }),
+    );
+    setIdTarefaSelecionada(0);
+    setOpenDeletar(!openDeletar);
+  };
+
+  return(
     <>
-    <Card>
+      <Card>
         <CardHeader
-          title="Tarefas"
-          subheader="Listagem de Tarefas"
+          title="Atividades"
+          subheader="Listagem de Atividades"
         /> 
         <CardContent>
             <TableContainer component={Paper}>
@@ -94,14 +109,13 @@ const ListarTarefa = () => {
                 <TableHead>
                 <TableRow>
                     <TableCell>#</TableCell>
-                    <TableCell>Título</TableCell>
-                    <TableCell align="right">Descrição</TableCell>
-                    <TableCell align="right">Data de Início</TableCell>
-                    <TableCell align="right">Data de Finalização</TableCell>
-                    <TableCell align="right">Status</TableCell>
-                    <TableCell align="right">Recurso</TableCell>
-                    <TableCell align="left"></TableCell>
-                    <TableCell align="left"></TableCell>
+                    <TableCell align="center">Título</TableCell>
+                    <TableCell align="center">Descrição</TableCell>
+                    <TableCell align="center">Data de Início</TableCell>
+                    <TableCell align="center">Data de Finalização</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                    <TableCell align="center">Recurso</TableCell>
+                    <TableCell align="center">Ações</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -110,21 +124,20 @@ const ListarTarefa = () => {
                     key={indice}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                     >
-                      <TableCell component="th" scope="row">
+                      <TableCell component="th" scope="row" align="center">
                           {row.idTarefa}
                       </TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell component="th" scope="row" align="left">
                           {row.tituloTarefa}
                       </TableCell>
-                      <TableCell align="right">{row.descricaoTarefa}</TableCell>
-                      <TableCell align="right">{row.inicioTarefa}</TableCell>
-                      <TableCell align="right">{row.fimTarefa}</TableCell>
-                      <TableCell align="right">{row.statusTarefa}</TableCell>
-                      <TableCell align="right">{row.recursoTarefa}</TableCell>
+                      <TableCell align="left">{row.descricaoTarefa}</TableCell>
+                      <TableCell align="center">{converterData(row.inicioTarefa)}</TableCell>
+                      <TableCell align="center">{converterData(row.fimTarefa)}</TableCell>
+                      <TableCell align="left">{row.statusTarefa}</TableCell>
+                      <TableCell align="left">{row.recursoTarefa}</TableCell>
                       <TableCell align="center">
-                        <Button variant="contained" color="success" onClick={() => handleEditar(row.idTarefa)}><EditIcon fontSize="small" /></Button>            
-                      </TableCell>
-                      <TableCell align="center">
+                        <Button variant="contained" color="success" onClick={() => handleEditar(row.idTarefa)}><EditIcon fontSize="small" /></Button>
+                        {" "}   
                         <Button variant="contained" color="error" onClick={() => handleDeletar(row.idTarefa)}><DeleteIcon fontSize="small" /></Button>            
                       </TableCell>
                     </TableRow>
@@ -134,8 +147,7 @@ const ListarTarefa = () => {
             </TableContainer>
         </CardContent>
         <CardActions>
-            <Button size="small" variant="contained" onClick={handleOpen}>Criar Tarefa</Button>
-            <Button size="small" variant="outlined">Cancelar</Button>
+            <Button size="large" variant="contained" onClick={handleOpen}>Criar Atividade</Button>
       </CardActions> 
     </Card>
     <div>
@@ -161,6 +173,29 @@ const ListarTarefa = () => {
           <EditarTarefa handleCloseEditar={handleCloseEditar} idTarefaSelecionada={idTarefaSelecionada} tarefas={tarefas} tarefa={tarefa} setTarefas={setTarefas} />
         </div>
       </Modal>  
+    </div>
+    <div>
+      <Dialog
+        open={openDeletar}
+        onClose={handleCloseDeletar}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Deseja realmente excluir a tarefa?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Essa ação não poderá ser desfeita!
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" color="primary" onClick={handleCloseDeletar}>Cancelar</Button>
+          <Button variant="outlined" color="error" onClick={handleConfirmarDeletar} autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   </>    
  );
